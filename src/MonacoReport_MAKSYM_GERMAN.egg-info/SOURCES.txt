@@ -1,0 +1,10 @@
+LICENSE
+README.md
+pyproject.toml
+setup.cfg
+src/MonacoReport_MAKSYM_GERMAN.egg-info/PKG-INFO
+src/MonacoReport_MAKSYM_GERMAN.egg-info/SOURCES.txt
+src/MonacoReport_MAKSYM_GERMAN.egg-info/dependency_links.txt
+src/MonacoReport_MAKSYM_GERMAN.egg-info/top_level.txt
+src/report/__init__.py
+src/report/report.py

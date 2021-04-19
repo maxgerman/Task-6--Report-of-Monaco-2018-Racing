@@ -21,7 +21,7 @@ import datetime as dt
 import argparse
 
 # defaults
-DATA_PATH = 'data'
+DATA_PATH = '../data'
 ABBR_FILENAME = 'abbreviations.txt'
 START_LOG = 'start.log'
 END_LOG = 'end.log'
