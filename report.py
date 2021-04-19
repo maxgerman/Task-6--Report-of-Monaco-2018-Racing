@@ -2,6 +2,12 @@ import os
 import datetime as dt
 import argparse
 
+# defaults
+DATA_PATH = 'data'
+ABBR_FILENAME = 'abbreviations.txt'
+START_LOG = 'start.log'
+END_LOG = 'end.log'
+
 
 class Driver:
     def __init__(self, abbr, name, team, start_time=None, stop_time=None, best_lap=None):
@@ -19,16 +25,20 @@ class Driver:
         return '{:<20} |{:<25} |{}'.format(self.name, self.team, str(self.best_lap)[:-3])
 
 
-def build_report(data_path='data'):
-    drivers = []
+def drivers_from_abbr(data_path):
     # create drivers
-    with open(os.path.join(data_path, 'abbreviations.txt'), 'r', encoding='UTF-8') as f:
+    drivers = []
+    with open(os.path.join(data_path, ABBR_FILENAME), 'r', encoding='UTF-8') as f:
         for line in f:
             abbr, name, team = line.split('_')
             new_driver = Driver(abbr, name, team.rstrip())
             drivers.append(new_driver)
+    return drivers
+
+
+def parse_logs(data_path, drivers):
     # add start times
-    with open(os.path.join(data_path, 'start.log'), 'r', encoding='UTF-8') as f:
+    with open(os.path.join(data_path, START_LOG), 'r', encoding='UTF-8') as f:
         # use only non-blank lines
         lines = (line for line in f if line.strip())
         for line in lines:
@@ -38,7 +48,7 @@ def build_report(data_path='data'):
                     driver.start_time = dt.datetime.strptime(start_time, "%H:%M:%S.%f")
                     break
     # add stop times
-    with open(os.path.join(data_path, 'end.log'), 'r', encoding='UTF-8') as f:
+    with open(os.path.join(data_path, END_LOG), 'r', encoding='UTF-8') as f:
         # use only non-blank lines
         lines = (line for line in f if line.strip())
         for line in lines:
@@ -47,6 +57,13 @@ def build_report(data_path='data'):
                 if driver.abbr == abbr:
                     driver.stop_time = dt.datetime.strptime(stop_time, "%H:%M:%S.%f")
                     break
+
+
+def build_report(data_path=DATA_PATH):
+    # get drivers from abbr file
+    drivers = drivers_from_abbr(data_path)
+    # add start, stop times to drivers
+    parse_logs(data_path, drivers)
     # validate times: start must be less than stop
     for driver in drivers:
         if driver.start_time > driver.stop_time:
@@ -59,12 +76,12 @@ def build_report(data_path='data'):
 def print_report(drivers, asc=True, driver=None):
     # if requested report about one driver only
     if driver:
-        res = []
         for d in drivers:
-            if driver in d.name:
+            if driver.lower() in d.name.lower():
                 return d.statistics()
         else:
             return 'Driver not found'
+
     # if report about all is requested
     else:
         sorted_drivers = sorted(drivers, key=lambda dr: dr.best_lap)
@@ -80,8 +97,10 @@ def print_report(drivers, asc=True, driver=None):
 
 def parse_cli():
     parser = argparse.ArgumentParser(prog='Report of Monaco 2018', description='Drivers\' statistics')
-    parser.add_argument('-f', '--files', nargs='?', default='data', help='Path to data files. Default: "data"')
-    parser.add_argument('--asc', dest='asc', action='store_const', const=True, default=True, help='Ascending order (default)')
+    parser.add_argument('-f', '--files', nargs='?', default=DATA_PATH,
+                        help=f'Path to data files. Default: "{DATA_PATH}"')
+    parser.add_argument('--asc', dest='asc', action='store_const', const=True, default=True,
+                        help='Ascending order (default)')
     parser.add_argument('--desc', dest='asc', action='store_const', const=False, help='Descending order')
     parser.add_argument('-d', '--driver', help='Provide the driver\'s name (or its part) to show the statistics of '
                                                'the particular driver')
